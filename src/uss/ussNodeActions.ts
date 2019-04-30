@@ -78,7 +78,9 @@ export async function initializeUSSFavorites(ussFileProvider: USSTree) {
         const profileName = line.substring(1, line.lastIndexOf("]"));
         const nodeName = line.substring(line.indexOf(":") + 1, line.length);
         const session = await utils.getSession(profileName);
-        const node = new ZoweUSSNode(
+        let node: ZoweUSSNode;
+        if (line.substring(line.indexOf("{") + 1, line.lastIndexOf("}")) === "directory") {
+        node = new ZoweUSSNode(
             nodeName,
             vscode.TreeItemCollapsibleState.Collapsed,
             ussFileProvider.mFavoriteSession,
@@ -87,6 +89,18 @@ export async function initializeUSSFavorites(ussFileProvider: USSTree) {
             false,
             profileName
         );
+        } else {
+            node = new ZoweUSSNode(
+                nodeName,
+                vscode.TreeItemCollapsibleState.None,
+                ussFileProvider.mFavoriteSession,
+                session,
+                "",
+                false,
+                profileName
+            );
+        }
+        console.log(node);
         ussFileProvider.mFavorites.push(node);
     });
 }

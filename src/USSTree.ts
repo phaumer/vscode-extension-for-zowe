@@ -129,7 +129,7 @@ export class USSTree implements vscode.TreeDataProvider<ZoweUSSNode> {
      */
     public async addUSSFavorite(node: ZoweUSSNode) {
         let temp: ZoweUSSNode;
-        temp = new ZoweUSSNode(node.label,
+        temp = new ZoweUSSNode(node.mLabel,
             node.collapsibleState,
             this.mFavoriteSession,
             node.getSession(),
@@ -147,7 +147,7 @@ export class USSTree implements vscode.TreeDataProvider<ZoweUSSNode> {
     public async updateFavorites() {
         const settings: any = { ...vscode.workspace.getConfiguration().get("Zowe-USS-Persistent-Favorites")};
         if (settings.persistence) {
-            settings.favorites = this.mFavorites.map((fav) => fav.label);
+            settings.favorites = this.mFavorites.map((fav) => fav.label + "{" + fav.contextValue + "}");
             await vscode.workspace.getConfiguration().update("Zowe-USS-Persistent-Favorites", settings, vscode.ConfigurationTarget.Global);
         }
     }
