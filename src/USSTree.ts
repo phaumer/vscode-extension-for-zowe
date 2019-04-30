@@ -136,18 +136,18 @@ export class USSTree implements vscode.TreeDataProvider<ZoweUSSNode> {
             node.mParent.fullPath,
             false,
             node.getSessionNode().mLabel);
+        temp.contextValue += "f";
         if (!this.mFavorites.find((tempNode) => tempNode.mLabel === temp.mLabel)) {
             this.mFavorites.push(temp);
             this.refresh();
             await this.updateFavorites();
         }
-        temp.contextValue += "f";
     }
 
     public async updateFavorites() {
         const settings: any = { ...vscode.workspace.getConfiguration().get("Zowe-USS-Persistent-Favorites")};
         if (settings.persistence) {
-            settings.favorites = this.mFavorites.map((fav) => fav.label + "{" + fav.contextValue + "}");
+            settings.favorites = this.mFavorites.map((fav) => fav.label + "{" + fav.contextValue.slice(0, -1) + "}");
             await vscode.workspace.getConfiguration().update("Zowe-USS-Persistent-Favorites", settings, vscode.ConfigurationTarget.Global);
         }
     }
