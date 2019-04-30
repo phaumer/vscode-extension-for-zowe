@@ -141,7 +141,7 @@ export class USSTree implements vscode.TreeDataProvider<ZoweUSSNode> {
             this.refresh();
             await this.updateFavorites();
         }
-
+        temp.contextValue += "f";
     }
 
     public async updateFavorites() {
