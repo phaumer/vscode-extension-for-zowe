@@ -1010,6 +1010,9 @@ export async function openUSS(node: ZoweUSSNode, download = false) {
     try {
         let label: string;
         switch (node.mParent.contextValue) {
+            case ("favorite"):
+            label = node.mLabel.substring(node.mLabel.indexOf(":") + 1).trim();
+                break;
             case ("directory"):
                 label = node.fullPath;
                 break;

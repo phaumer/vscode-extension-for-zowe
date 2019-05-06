@@ -56,7 +56,8 @@ export class ZoweUSSNode extends vscode.TreeItem {
             this.fullPath = this.tooltip = parentPath + '/' + mLabel;
         }
         if (this.mParent && this.mParent.contextValue === 'favorite') {
-            this.label = "[" + mProfileName + "]: " + mLabel;
+            this.label = this.tooltip = "[" + mProfileName + "]:" + mLabel;
+            this.fullPath = mLabel;
         }
     }
 
@@ -79,6 +80,11 @@ export class ZoweUSSNode extends vscode.TreeItem {
             vscode.window.showErrorMessage("Invalid node");
             throw Error("Invalid node");
         }
+
+    let label = this.mLabel.trim();
+       if (this.mLabel.startsWith("[")) {
+           label = this.mLabel.substring(this.mLabel.indexOf(":") + 1).trim();
+       }
 
         // Gets the directories from the fullPath and displays any thrown errors
         const responses: zowe.IZosFilesResponse[] = [];

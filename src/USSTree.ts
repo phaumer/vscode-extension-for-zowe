@@ -129,7 +129,7 @@ export class USSTree implements vscode.TreeDataProvider<ZoweUSSNode> {
      */
     public async addUSSFavorite(node: ZoweUSSNode) {
         let temp: ZoweUSSNode;
-        temp = new ZoweUSSNode(node.mLabel,
+        temp = new ZoweUSSNode(node.fullPath,
             node.collapsibleState,
             this.mFavoriteSession,
             node.getSession(),
@@ -137,6 +137,9 @@ export class USSTree implements vscode.TreeDataProvider<ZoweUSSNode> {
             false,
             node.getSessionNode().mLabel);
         temp.contextValue += "f";
+        if (temp.contextValue === "textFilef" || temp.contextValue === "binaryFilef") {
+            temp.command = {command: "zowe.uss.ZoweUSSNode.open", title: "Open", arguments: [temp]};
+        }
         if (!this.mFavorites.find((tempNode) => tempNode.mLabel === temp.mLabel)) {
             this.mFavorites.push(temp);
             this.refresh();

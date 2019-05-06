@@ -99,8 +99,10 @@ export async function initializeUSSFavorites(ussFileProvider: USSTree) {
                 false,
                 profileName
             );
+            node.command = {command: "zowe.uss.ZoweUSSNode.open", title: "Open", arguments: [node]};
         }
-        console.log(node);
+        const nodeFullpath = node.fullPath.substring(0, node.fullPath.indexOf("{"));
+        node.fullPath = node.tooltip = nodeFullpath;
         ussFileProvider.mFavorites.push(node);
     });
 }
