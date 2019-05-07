@@ -155,6 +155,9 @@ export class ZoweUSSNode extends vscode.TreeItem {
             this.contextValue = "textFile";
             delete this.getSessionNode().binaryFiles[this.fullPath];
         }
+        if (this.mParent && this.mParent.contextValue === 'favorite') {
+            this.binary ? this.contextValue = "binaryFilef" : this.contextValue = "textFilef";
+        }
         this.dirty = true;
     }
 }

@@ -124,6 +124,10 @@
         "title": "Remove Favorite"
       },
       {
+        "command": "zowe.uss.removeFavorite",
+        "title": "Remove Favorite"
+      },
+      {
         "command": "zowe.removeSavedSearch",
         "title": "Remove Search"
       },
@@ -254,6 +258,11 @@
           "group": "navigation"
         },
         {
+          "when": "view == zowe.uss.explorer && viewItem == directoryf",
+          "command": "zowe.uss.removeFavorite",
+          "group": "navigation"
+        },
+        {
           "when": "view == zowe.uss.explorer",
           "command": "zowe.uss.deleteNode",
           "group": "navigation"
@@ -274,6 +283,11 @@
           "group": "navigation"
         },
         {
+          "when": "view == zowe.uss.explorer && viewItem == textFilef",
+          "command": "zowe.uss.removeFavorite",
+          "group": "navigation"
+        },
+        {
           "when": "view == zowe.uss.explorer && viewItem == binaryFile",
           "command": "zowe.uss.text",
           "group": "navigation"
@@ -286,6 +300,11 @@
         {
           "when": "view == zowe.uss.explorer && viewItem == binaryFilef",
           "command": "zowe.uss.text",
+          "group": "navigation"
+        },
+        {
+          "when": "view == zowe.uss.explorer && viewItem == binaryFilef",
+          "command": "zowe.uss.removeFavorite",
           "group": "navigation"
         },
         {

@@ -147,6 +147,18 @@ export class USSTree implements vscode.TreeDataProvider<ZoweUSSNode> {
         }
     }
 
+     /**
+     * Removes a node from the favorites list
+     *
+     * @param {ZoweUSSNode} node
+     */
+    public async removeUSSFavorite(node: ZoweUSSNode) {
+        this.mFavorites = this.mFavorites.filter((temp) =>
+            !((temp.mLabel === node.mLabel) && (temp.contextValue.startsWith(node.contextValue))));
+        this.refresh();
+        await this.updateFavorites();
+    }
+
     public async updateFavorites() {
         const settings: any = { ...vscode.workspace.getConfiguration().get("Zowe-USS-Persistent-Favorites")};
         if (settings.persistence) {

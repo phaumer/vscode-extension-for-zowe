@@ -112,6 +112,7 @@ export async function activate(context: vscode.ExtensionContext) {
     });
 
     vscode.commands.registerCommand("zowe.uss.addFavorite", async (node) => ussFileProvider.addUSSFavorite(node));
+    vscode.commands.registerCommand("zowe.uss.removeFavorite", async (node) => ussFileProvider.removeUSSFavorite(node));
     vscode.commands.registerCommand("zowe.uss.addSession", async () => addUSSSession(ussFileProvider));
     vscode.commands.registerCommand("zowe.uss.refreshAll", () => refreshAllUSS(ussFileProvider));
     vscode.commands.registerCommand("zowe.uss.refreshUSS", (node) => refreshUSS(node));
