@@ -76,7 +76,8 @@ export async function initializeUSSFavorites(ussFileProvider: USSTree) {
     const lines: string[] = vscode.workspace.getConfiguration("Zowe-USS-Persistent-Favorites").get("favorites");
     lines.forEach(async line => {
         const profileName = line.substring(1, line.lastIndexOf("]"));
-        const nodeName = line.substring(line.indexOf(":") + 1, line.length);
+        // const nodeName = line.substring(line.indexOf(":") + 1, line.length);
+        const nodeName = line.substring(line.indexOf(":") + 1, line.indexOf("{"));
         const session = await utils.getSession(profileName);
         let node: ZoweUSSNode;
         if (line.substring(line.indexOf("{") + 1, line.lastIndexOf("}")) === "directory") {
@@ -101,8 +102,7 @@ export async function initializeUSSFavorites(ussFileProvider: USSTree) {
             );
             node.command = {command: "zowe.uss.ZoweUSSNode.open", title: "Open", arguments: [node]};
         }
-        const nodeFullpath = node.fullPath.substring(0, node.fullPath.indexOf("{"));
-        node.fullPath = node.tooltip = nodeFullpath;
+        node.contextValue += "f";
         ussFileProvider.mFavorites.push(node);
     });
 }

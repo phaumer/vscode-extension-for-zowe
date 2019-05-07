@@ -81,11 +81,6 @@ export class ZoweUSSNode extends vscode.TreeItem {
             throw Error("Invalid node");
         }
 
-    let label = this.mLabel.trim();
-       if (this.mLabel.startsWith("[")) {
-           label = this.mLabel.substring(this.mLabel.indexOf(":") + 1).trim();
-       }
-
         // Gets the directories from the fullPath and displays any thrown errors
         const responses: zowe.IZosFilesResponse[] = [];
         let response: any;
