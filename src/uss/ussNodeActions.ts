@@ -76,7 +76,6 @@ export async function initializeUSSFavorites(ussFileProvider: USSTree) {
     const lines: string[] = vscode.workspace.getConfiguration("Zowe-USS-Persistent-Favorites").get("favorites");
     lines.forEach(async line => {
         const profileName = line.substring(1, line.lastIndexOf("]"));
-        // const nodeName = line.substring(line.indexOf(":") + 1, line.length);
         const nodeName = line.substring(line.indexOf(":") + 1, line.indexOf("{"));
         const session = await utils.getSession(profileName);
         let node: ZoweUSSNode;
