@@ -1012,9 +1012,11 @@ export async function openUSS(node: ZoweUSSNode, download = false) {
         let label: string;
         switch (node.mParent.contextValue) {
             case ("favorite"):
-            label = node.mLabel.substring(node.mLabel.indexOf(":") + 1).trim();
+                label = node.mLabel.substring(node.mLabel.indexOf(":") + 1).trim();
                 break;
+            // Handle file path for files in directories and favorited directories
             case ("directory"):
+            case ("directoryf"):
                 label = node.fullPath;
                 break;
             case ("uss_session"):
