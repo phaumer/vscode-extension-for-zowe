@@ -55,7 +55,11 @@ export class ZoweUSSNode extends vscode.TreeItem {
             this.contextValue = "textFile";
         }
         if (parentPath) {
-            this.fullPath = this.tooltip = parentPath + '/' + mLabel;
+            this.fullPath = this.tooltip = parentPath + "/" + mLabel;
+            if (parentPath === "/") {
+                // Keep fullPath of root level nodes preceded by a single slash
+                this.fullPath = this.tooltip = "/" + mLabel;
+            }
         }
         if (this.mParent && this.mParent.contextValue === 'favorite') {
             this.profileName = "[" + mProfileName + "]: ";
