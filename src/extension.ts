@@ -594,7 +594,8 @@ export async function enterUSSPattern(node: ZoweUSSNode, ussFileProvider: USSTre
     // change label so the treeview updates
     node.label = node.label + " ";
     node.label.trim();
-    node.tooltip = node.fullPath = remotepath;
+    // Sanitization: Replace multiple preceding forward slashes with just one forward slash
+    node.tooltip = node.fullPath = remotepath.replace(/\/\/+/, "/");
     node.collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
     node.dirty = true;
     ussFileProvider.refresh();
