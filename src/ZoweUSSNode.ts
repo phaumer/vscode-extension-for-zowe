@@ -62,7 +62,7 @@ export class ZoweUSSNode extends vscode.TreeItem {
             }
         }
         if (this.mParent && this.mParent.contextValue === 'favorite') {
-            this.profileName = "[" + mProfileName + "]: ";
+            this.profileName = "[" + mProfileName + "]:";
             this.fullPath = mLabel;
             // File or directory name only (no parent path)
             this.shortLabel = this.fullPath.split('/', this.fullPath.length).pop(); 
