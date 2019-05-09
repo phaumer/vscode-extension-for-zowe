@@ -62,13 +62,13 @@ export class ZoweUSSNode extends vscode.TreeItem {
             }
         }
         if (this.mParent && this.mParent.contextValue === 'favorite') {
-            this.profileName = "[" + mProfileName + "]:";
-            this.fullPath = mLabel;
+            this.profileName = "[" + mProfileName + "]: ";
+            this.fullPath = mLabel.trim();
             // File or directory name only (no parent path)
             this.shortLabel = this.fullPath.split('/', this.fullPath.length).pop(); 
             // Display name for favorited file or directory in tree view
             this.label = this.profileName + this.shortLabel; 
-            this.tooltip = this.profileName + mLabel;
+            this.tooltip = this.profileName + mLabel.trim();
         }
     }
 
