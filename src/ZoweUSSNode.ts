@@ -68,7 +68,7 @@ export class ZoweUSSNode extends vscode.TreeItem {
             this.shortLabel = this.fullPath.split('/', this.fullPath.length).pop(); 
             // Display name for favorited file or directory in tree view
             this.label = this.profileName + this.shortLabel; 
-            this.tooltip = this.profileName + mLabel.trim();
+            this.tooltip = this.profileName + this.fullPath;
         }
     }
 

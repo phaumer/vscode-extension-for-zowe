@@ -77,7 +77,6 @@ export async function initializeUSSFavorites(ussFileProvider: USSTree) {
     lines.forEach(async line => {
         const profileName = line.substring(1, line.lastIndexOf("]"));
         const nodeName = (line.substring(line.indexOf(":") + 1, line.indexOf("{"))).trim();
-        console.log("initial node mLabel: " + nodeName);
         const session = await utils.getSession(profileName);
         let node: ZoweUSSNode;
         if (line.substring(line.indexOf("{") + 1, line.lastIndexOf("}")) === "directory") {
