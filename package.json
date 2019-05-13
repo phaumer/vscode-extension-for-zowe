@@ -1,8 +1,8 @@
 {
   "name": "vscode-extension-for-zowe",
   "displayName": "Zowe",
-  "description": "VS Code extension, powered by Zowe CLI, that streamlines interaction with mainframe data sets",
-  "version": "0.11.0",
+  "description": "VS Code extension, powered by Zowe CLI, that streamlines interaction with mainframe data sets, USS files, and jobs",
+  "version": "0.15.1",
   "publisher": "Zowe",
   "repository": {
     "url": "https://github.com/zowe/vscode-extension-for-zowe"
@@ -30,8 +30,17 @@
   ],
   "main": "./out/src/extension",
   "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "zowe",
+          "title": "Zowe",
+          "icon": "resources/zowe.svg"
+        }
+      ]
+    },
     "views": {
-      "explorer": [
+      "zowe": [
         {
           "id": "zowe.explorer",
           "name": "Data Sets"
@@ -39,6 +48,14 @@
         {
           "id": "zowe.uss.explorer",
           "name": "Unix System Services (USS)"
+        },
+        {
+          "id": "zowe.jobs",
+          "name": "Jobs"
+        },
+        {
+          "id": "zowe.spool",
+          "name": "Spool Files"
         }
       ]
     },
@@ -206,6 +223,58 @@
       {
         "command": "zowe.uss.text",
         "title": "Toggle Text"
+      },
+      {
+        "command": "zowe.deleteJob",
+        "title": "Delete Job",
+        "icon": {
+          "dark": "./resources/dark/trash.svg",
+          "light": "./resources/light/trash.svg"
+        }
+      },
+      {
+        "command": "zowe.runModifyCommand",
+        "title": "Issue Modify command"
+      },
+      {
+        "command": "zowe.runStopCommand",
+        "title": "Issue Stop command"
+      },
+      {
+        "command": "zowe.setOwner",
+        "title": "Set Owner"
+      },
+      {
+        "command": "zowe.setPrefix",
+        "title": "Set Job Prefix"
+      },
+      {
+        "command": "zowe.refreshJobsServer",
+        "title": "Refresh",
+        "icon": {
+          "light": "./resources/light/refresh.svg",
+          "dark": "./resources/dark/refresh.svg"
+        }
+      },
+      {
+        "command": "zowe.refreshAllJobs",
+        "title": "Refresh",
+        "icon": {
+          "light": "./resources/light/refresh.svg",
+          "dark": "./resources/dark/refresh.svg"
+        }
+      },
+      {
+        "command": "zowe.addJobsSession",
+        "title": "Add Profile",
+        "icon": {
+          "light": "./resources/light/plus.svg",
+          "dark": "./resources/dark/plus.svg"
+        }
+      },
+      {
+        "command": "zowe.removeJobsSession",
+        "title": "Remove Profile"
       }
     ],
     "menus": {
@@ -228,6 +297,16 @@
         {
           "when": "view == zowe.uss.explorer",
           "command": "zowe.uss.addSession",
+          "group": "navigation"
+        },
+        {
+          "when": "view == zowe.jobs",
+          "command": "zowe.refreshAllJobs",
+          "group": "navigation"
+        },
+        {
+          "when": "view == zowe.jobs",
+          "command": "zowe.addJobsSession",
           "group": "navigation"
         }
       ],
@@ -263,7 +342,7 @@
           "group": "navigation"
         },
         {
-          "when": "view == zowe.uss.explorer",
+          "when": "view == zowe.uss.explorer && viewItem != uss_session",
           "command": "zowe.uss.deleteNode",
           "group": "navigation"
         },
@@ -433,6 +512,36 @@
         {
           "when": "viewItem == uss_session",
           "command": "zowe.uss.removeSession"
+        },
+        {
+          "when": "viewItem == server",
+          "command": "zowe.refreshJobsServer",
+          "group": "inline"
+        },
+        {
+          "when": "viewItem == server",
+          "command": "zowe.setOwner"
+        },
+        {
+          "when": "viewItem == server",
+          "command": "zowe.setPrefix"
+        },
+        {
+          "when": "viewItem == server",
+          "command": "zowe.removeJobsSession"
+        },
+        {
+          "when": "viewItem == job",
+          "command": "zowe.deleteJob",
+          "group": "inline"
+        },
+        {
+          "when": "viewItem == job",
+          "command": "zowe.runModifyCommand"
+        },
+        {
+          "when": "viewItem == job",
+          "command": "zowe.runStopCommand"
         }
       ],
       "commandPalette": [
@@ -615,7 +724,7 @@
     "sinon": "^6.1.0",
     "ts-jest": "^22.4.6",
     "typescript": "^2.9.2",
-    "vsce": "^1.58.0",
+    "vsce": "^1.60.0",
     "vscode": "^1.1.30"
   },
   "dependencies": {
@@ -634,7 +743,8 @@
     },
     "globals": {
       "ts-jest": {
-        "tsConfigFile": "tsconfig.json"
+        "tsConfigFile": "tsconfig.json",
+        "diagnostics": false
       }
     },
     "testMatch": [

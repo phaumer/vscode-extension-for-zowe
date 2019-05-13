@@ -3,6 +3,20 @@ All notable changes to the "vscode-extension-for-zowe" extension will be documen
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## 0.15.1
+ - Add a delete session menu item for sessions in the jobs view. Thanks @crshnburn
+ - Prevent the delete menu item for USS files and directories appearing on the context menu for sessions. Thanks @crshnburn
+ - Fixed an issue where adding a profile to the USS explorer incorrectly referenced data sets 
+## 0.15.0
+ - The extension is now compatible with installations which use a secure credential management plugin
+   for profiles in Zowe CLI
+## 0.14.0
+ - All zowe views now part of single Zowe view container. Thanks Colin Stone
+## 0.13.0
+ - Added the ability to list and view spool of z/OS Jobs. Thanks @crshnburn 
+## 0.12.0
+ - Added GIFs to README for USS use cases. Thanks Colin Stone
+ - Added the ability to toggle binary mode or text mode on USS files. Thanks @crshnburn 
 ## 0.11.0
  - Create and delete functionality for USS Files and directories added as menu items.
 ## 0.10.4
