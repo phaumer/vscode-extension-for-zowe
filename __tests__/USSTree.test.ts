@@ -70,6 +70,7 @@ describe("Unit Tests (Jest)", async () => {
         const rootChildren = await testTree.getChildren();
         // Creating a rootNode
         const sessNode = [
+            new ZoweUSSNode("Favorites", vscode.TreeItemCollapsibleState.Collapsed, null, null, null),
             new ZoweUSSNode("testSess", vscode.TreeItemCollapsibleState.Collapsed, null, session, null),
         ];
         sessNode[0].contextValue = "uss_session";
@@ -120,10 +121,10 @@ describe("Unit Tests (Jest)", async () => {
     it("Testing that getChildren returns the correct ZoweUSSNodes when called and passed an element of type ZoweUSSNode<session>", async () => {
 
         // Waiting until we populate rootChildren with what getChildren return
-        const sessChildren = await testTree.getChildren(testTree.mSessionNodes[0]);
+        const sessChildren = await testTree.getChildren(testTree.mSessionNodes[1]);
         // Creating fake datasets and uss members to test
         const sampleChildren: ZoweUSSNode[] = [
-            new ZoweUSSNode("aDir", vscode.TreeItemCollapsibleState.Collapsed, testTree.mSessionNodes[0], null, null),
+            new ZoweUSSNode("aDir", vscode.TreeItemCollapsibleState.Collapsed, testTree.mSessionNodes[1], null, null),
         ];
 
         // Checking that the rootChildren are what they are expected to be
@@ -151,7 +152,7 @@ describe("Unit Tests (Jest)", async () => {
      * Tests that getChildren() method returns an array of all child nodes of passed ZoweUSSNode
      *************************************************************************************************************/
     it("Testing that getChildren returns the correct ZoweUSSNodes when called and passed an element of type ZoweUSSNode<directory>", async () => {
-        const directory = new ZoweUSSNode("/u", vscode.TreeItemCollapsibleState.Collapsed, testTree.mSessionNodes[0], null, null);
+        const directory = new ZoweUSSNode("/u", vscode.TreeItemCollapsibleState.Collapsed, testTree.mSessionNodes[1], null, null);
 
         // Waiting until we populate rootChildren with what getChildren return
         const dirChildren = await testTree.getChildren(directory);
