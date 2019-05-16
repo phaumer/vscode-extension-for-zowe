@@ -342,7 +342,7 @@
           "group": "navigation"
         },
         {
-          "when": "view == zowe.uss.explorer && viewItem != uss_session",
+          "when": "view == zowe.uss.explorer && viewItem != uss_session && viewItem != favorite",
           "command": "zowe.uss.deleteNode",
           "group": "navigation"
         },
