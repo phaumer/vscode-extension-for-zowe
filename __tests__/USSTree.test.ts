@@ -30,8 +30,8 @@ describe("Unit Tests (Jest)", async () => {
     });
     const testTree = new USSTree();
     testTree.mSessionNodes.push(new ZoweUSSNode("testSess", vscode.TreeItemCollapsibleState.Collapsed, null, session, null));
-    testTree.mSessionNodes[0].contextValue = "uss_session";
-    testTree.mSessionNodes[0].fullPath = "test";
+    testTree.mSessionNodes[1].contextValue = "uss_session";
+    testTree.mSessionNodes[1].fullPath = "test";
     /*************************************************************************************************************
      * Creates an ZoweUSSNode and checks that its members are all initialized by the constructor
      *************************************************************************************************************/
@@ -73,8 +73,9 @@ describe("Unit Tests (Jest)", async () => {
             new ZoweUSSNode("Favorites", vscode.TreeItemCollapsibleState.Collapsed, null, null, null),
             new ZoweUSSNode("testSess", vscode.TreeItemCollapsibleState.Collapsed, null, session, null),
         ];
-        sessNode[0].contextValue = "uss_session";
-        sessNode[0].fullPath = "test";
+        sessNode[0].contextValue = "favorite";
+        sessNode[1].contextValue = "uss_session";
+        sessNode[1].fullPath = "test";
 
         // Checking that the rootChildren are what they are expected to be
         expect(sessNode).toEqual(rootChildren);
@@ -131,22 +132,22 @@ describe("Unit Tests (Jest)", async () => {
         expect(sessChildren[0].mLabel).toEqual(sampleChildren[0].mLabel);
     });
 
-    // /*************************************************************************************************************
-    //  * Tests that getChildren() method returns an array of all child nodes of passed ZoweUSSNode
-    //  *************************************************************************************************************/
-    // it("Testing that getChildren returns the correct ZoweUSSNodes when called and passed an element of type ZoweUSSNode<favorite>", async () => {
+    /*************************************************************************************************************
+     * Tests that getChildren() method returns an array of all child nodes of passed ZoweUSSNode
+     *************************************************************************************************************/
+    it("Testing that getChildren returns the correct ZoweUSSNodes when called and passed an element of type ZoweUSSNode<favorite>", async () => {
 
-    //     // Waiting until we populate rootChildren with what getChildren return
-    //     testTree.mFavorites.push(new ZoweUSSNode("/u/myUser", vscode.TreeItemCollapsibleState.None, testTree.mSessionNodes[0], null, null));
-    //     const favChildren = await testTree.getChildren(testTree.mSessionNodes[0]);
-    //     // Creating fake datasets and uss members to test
-    //     const sampleChildren: ZoweUSSNode[] = [
-    //         new ZoweUSSNode("/u/myUser", vscode.TreeItemCollapsibleState.None, testTree.mSessionNodes[0], null, null)
-    //     ];
+        // Waiting until we populate rootChildren with what getChildren return
+        testTree.mFavorites.push(new ZoweUSSNode("/u/myUser", vscode.TreeItemCollapsibleState.None, testTree.mSessionNodes[0], null, null));
+        const favChildren = await testTree.getChildren(testTree.mSessionNodes[0]);
+        // Creating fake datasets and uss members to test
+        const sampleChildren: ZoweUSSNode[] = [
+            new ZoweUSSNode("/u/myUser", vscode.TreeItemCollapsibleState.None, testTree.mSessionNodes[0], null, null)
+        ];
 
-    //     // Checking that the rootChildren are what they are expected to be
-    //     expect(favChildren).toEqual(sampleChildren);
-    // });
+        // Checking that the rootChildren are what they are expected to be
+        expect(favChildren).toEqual(sampleChildren);
+    });
 
     /*************************************************************************************************************
      * Tests that getChildren() method returns an array of all child nodes of passed ZoweUSSNode
@@ -185,7 +186,7 @@ describe("Unit Tests (Jest)", async () => {
 
 
     it("Testing that deleteSession works properly", async () => {
-        testTree.deleteSession(testTree.mSessionNodes[0]);
+        testTree.deleteSession(testTree.mSessionNodes[1]);
     });
 
 
