@@ -3,6 +3,11 @@ All notable changes to the "vscode-extension-for-zowe" extension will be documen
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## 0.16.1
+ - Attempt to fix an issue where saving data sets ceases to work without any error message
+## 0.16.0
+ - Add the ability to display data set attributes by right clicking on a data set
+ - Add the ability to save all spool content by clicking a download icon next to the job. Thanks @crshnburn
 ## 0.15.1
  - Add a delete session menu item for sessions in the jobs view. Thanks @crshnburn
  - Prevent the delete menu item for USS files and directories appearing on the context menu for sessions. Thanks @crshnburn
