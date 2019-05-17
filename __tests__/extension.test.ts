@@ -304,7 +304,7 @@ describe("Extension Unit Tests", async () => {
                     getChildren: mockGetUSSChildren,
                 }
         });
-        expect(registerCommand.mock.calls.length).toBe(42);
+        expect(registerCommand.mock.calls.length).toBe(44);
         expect(registerCommand.mock.calls[0][0]).toBe("zowe.addSession");
         expect(registerCommand.mock.calls[0][1]).toBeInstanceOf(Function);
         expect(registerCommand.mock.calls[1][0]).toBe("zowe.addFavorite");
@@ -341,22 +341,24 @@ describe("Extension Unit Tests", async () => {
         expect(registerCommand.mock.calls[16][1]).toBeInstanceOf(Function);
         expect(registerCommand.mock.calls[17][0]).toBe("zowe.submitMember");
         expect(registerCommand.mock.calls[17][1]).toBeInstanceOf(Function);
-        expect(registerCommand.mock.calls[18][0]).toBe("zowe.uss.addFavorite");
+        expect(registerCommand.mock.calls[18][0]).toBe("zowe.showDSAttributes");
         expect(registerCommand.mock.calls[18][1]).toBeInstanceOf(Function);
-        expect(registerCommand.mock.calls[19][0]).toBe("zowe.uss.removeFavorite");
+        expect(registerCommand.mock.calls[19][0]).toBe("zowe.uss.addFavorite");
         expect(registerCommand.mock.calls[19][1]).toBeInstanceOf(Function);
-        expect(registerCommand.mock.calls[20][0]).toBe("zowe.uss.addSession");
+        expect(registerCommand.mock.calls[20][0]).toBe("zowe.uss.removeFavorite");
         expect(registerCommand.mock.calls[20][1]).toBeInstanceOf(Function);
-        expect(registerCommand.mock.calls[21][0]).toBe("zowe.uss.refreshAll");
+        expect(registerCommand.mock.calls[21][0]).toBe("zowe.uss.addSession");
         expect(registerCommand.mock.calls[21][1]).toBeInstanceOf(Function);
-        expect(registerCommand.mock.calls[22][0]).toBe("zowe.uss.refreshUSS");
+        expect(registerCommand.mock.calls[22][0]).toBe("zowe.uss.refreshAll");
         expect(registerCommand.mock.calls[22][1]).toBeInstanceOf(Function);
-        expect(registerCommand.mock.calls[23][0]).toBe("zowe.uss.fullPath");
+        expect(registerCommand.mock.calls[23][0]).toBe("zowe.uss.refreshUSS");
         expect(registerCommand.mock.calls[23][1]).toBeInstanceOf(Function);
-        expect(registerCommand.mock.calls[24][0]).toBe("zowe.uss.ZoweUSSNode.open");
+        expect(registerCommand.mock.calls[24][0]).toBe("zowe.uss.fullPath");
         expect(registerCommand.mock.calls[24][1]).toBeInstanceOf(Function);
-        expect(registerCommand.mock.calls[25][0]).toBe("zowe.uss.removeSession");
+        expect(registerCommand.mock.calls[25][0]).toBe("zowe.uss.ZoweUSSNode.open");
         expect(registerCommand.mock.calls[25][1]).toBeInstanceOf(Function);
+        expect(registerCommand.mock.calls[26][0]).toBe("zowe.uss.removeSession");
+        expect(registerCommand.mock.calls[26][1]).toBeInstanceOf(Function);
         expect(onDidSaveTextDocument.mock.calls.length).toBe(1);
         expect(existsSync.mock.calls.length).toBe(3);
         expect(existsSync.mock.calls[0][0]).toBe(extension.BRIGHTTEMPFOLDER);
