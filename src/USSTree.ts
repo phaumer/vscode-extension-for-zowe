@@ -138,7 +138,7 @@ export class USSTree implements vscode.TreeDataProvider<ZoweUSSNode> {
             temp.command = {command: "zowe.uss.ZoweUSSNode.open", title: "Open", arguments: [temp]};
         }
         if (!this.mFavorites.find((tempNode) => tempNode.mLabel === temp.mLabel)) {
-            this.mFavorites.push(temp);
+            this.mFavorites.push(temp); // testing
             this.refresh();
             await this.updateFavorites();
         }

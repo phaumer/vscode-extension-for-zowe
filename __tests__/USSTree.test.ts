@@ -48,6 +48,17 @@ describe("Unit Tests (Jest)", async () => {
         })
     });
 
+    Object.defineProperty(vscode.workspace, "getConfiguration", {
+        value:
+            jest.fn(()=>{
+                return {
+                    get: jest.fn(()=>{
+                        return {};
+                    })
+                };
+            })
+    });
+
     const testTree = new USSTree();
     testTree.mSessionNodes.push(new ZoweUSSNode("testSess", vscode.TreeItemCollapsibleState.Collapsed, null, session, null));
     testTree.mSessionNodes[1].contextValue = "uss_session";
@@ -204,10 +215,40 @@ describe("Unit Tests (Jest)", async () => {
         testTree.addSession("fake");
     });
 
+    /*************************************************************************************************************
+     * Testing that addUSSFavorite works properly
+     *************************************************************************************************************/
+    it("Testing that addUSSFavorite works properly", async () => {
+        testTree.mFavorites = [];
+        const parentDir = new ZoweUSSNode("parent", vscode.TreeItemCollapsibleState.Collapsed,
+            testTree.mSessionNodes[1], null, "/");
+        const childFile = new ZoweUSSNode("child", vscode.TreeItemCollapsibleState.Collapsed,
+            parentDir, null, "/parent");
+        
+        // Check adding directory
+        await testTree.addUSSFavorite(parentDir);
+        // Check adding duplicates
+        await testTree.addUSSFavorite(parentDir);
+        // Check adding file
+        await testTree.addUSSFavorite(childFile);
 
+        expect(testTree.mFavorites.length).toEqual(2);
+    });
+
+    /*************************************************************************************************************
+     * Testing that deleteSession works properly
+     *************************************************************************************************************/
     it("Testing that deleteSession works properly", async () => {
         testTree.deleteSession(testTree.mSessionNodes[1]);
     });
 
+    /*************************************************************************************************************
+     * Testing that removeFavorite works properly
+     *************************************************************************************************************/
+    it("Testing that removeFavorite works properly", async () => {
+        testTree.removeUSSFavorite(testTree.mFavorites[0]);
+        testTree.removeUSSFavorite(testTree.mFavorites[0]);
 
+        expect(testTree.mFavorites).toEqual([]);
+    });
 });
