@@ -1319,6 +1319,36 @@ describe("Extension Unit Tests", async () => {
         expect(showErrorMessage.mock.calls[1][0]).toBe("open() called from invalid node.");
     });
 
+    it("Tests that openUSS executes successfully with favorited files", async () => {
+        ussFile.mockReset();
+        openTextDocument.mockReset();
+        showTextDocument.mockReset();
+
+        openTextDocument.mockResolvedValueOnce("test.doc");
+
+        // Set up mock favorite session
+        const favoriteSession = new ZoweUSSNode("Favorites", vscode.TreeItemCollapsibleState.Collapsed, null, session, null);
+        favoriteSession.contextValue = "favorite";
+
+        // Set up favorited nodes (directly under Favorites)
+        const favoriteFile = new ZoweUSSNode("favFile", vscode.TreeItemCollapsibleState.None, favoriteSession, null, "/");
+        favoriteFile.contextValue = "textfilef";
+        const favoriteParent = new ZoweUSSNode("favParent", vscode.TreeItemCollapsibleState.Collapsed, favoriteSession, null, "/");
+        favoriteParent.contextValue = "directoryf";
+        // Set up child of favoriteDir - make sure we can open the child of a favorited directory
+        const child = new ZoweUSSNode("favChild", vscode.TreeItemCollapsibleState.Collapsed, favoriteParent, null, "/favDir");
+        child.contextValue = "textfile";
+
+        // For each node, make sure that code below the log.debug statement is execute
+        await extension.openUSS(favoriteFile);
+        expect(showTextDocument.mock.calls.length).toBe(1);
+        showTextDocument.mockReset();
+
+        await extension.openUSS(child);
+        expect(showTextDocument.mock.calls.length).toBe(1);
+        showTextDocument.mockReset();
+    });
+
     it("Testing that saveUSSFile is executed successfully", async () => {
         const testDoc: vscode.TextDocument = {
             fileName: path.join(extension.USS_DIR, "testFile"),
