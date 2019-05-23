@@ -354,7 +354,7 @@
           "group": "navigation"
         },
         {
-          "when": "view == zowe.uss.explorer && viewItem != uss_session && viewItem != favorite",
+          "when": "view == zowe.uss.explorer && viewItem != uss_session && viewItem != favorite && viewItem != textFilef && viewItem != binaryFilef && viewItem != directoryf",
           "command": "zowe.uss.deleteNode",
           "group": "navigation"
         },
