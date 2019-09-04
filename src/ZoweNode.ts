@@ -11,8 +11,10 @@
 
 import * as zowe from "@brightside/core";
 import * as vscode from "vscode";
-import { Session, AbstractSession } from "@brightside/imperative";
+import { Session } from "@brightside/imperative";
 import * as nls from "vscode-nls";
+import * as utils from "./utils";
+import * as extension from "../src/extension";
 const localize = nls.config({ messageFormat: nls.MessageFormat.file })();
 
 /**
@@ -25,29 +27,30 @@ const localize = nls.config({ messageFormat: nls.MessageFormat.file })();
 export class ZoweNode extends vscode.TreeItem {
     public command: vscode.Command;
     public pattern = "";
-    public dirty = true;
+    public dirty = extension.ISTHEIA;  // Make sure this is true for theia instances
     public children: ZoweNode[] = [];
 
     /**
      * Creates an instance of ZoweNode
      *
-     * @param {string} mLabel - Displayed in the [TreeView]
+     * @param {string} label - Displayed in the [TreeView]
      * @param {vscode.TreeItemCollapsibleState} mCollapsibleState - file/folder
      * @param {ZoweNode} mParent
      * @param {Session} session
      */
-    constructor(public mLabel: string, public mCollapsibleState: vscode.TreeItemCollapsibleState,
+    constructor(label: string, collapsibleState: vscode.TreeItemCollapsibleState,
                 public mParent: ZoweNode, private session: Session, information: boolean = false) {
-        super(mLabel, mCollapsibleState);
+        super(label, collapsibleState);
         if (information) {
             this.contextValue = "information";
-        } else if (mCollapsibleState !== vscode.TreeItemCollapsibleState.None) {
+        } else if (collapsibleState !== vscode.TreeItemCollapsibleState.None) {
             this.contextValue = "pds";
         } else if (mParent && mParent.mParent !== null) {
             this.contextValue = "member";
         } else {
             this.contextValue = "ds";
         }
+        utils.applyIcons(this);
     }
 
     /**
@@ -65,19 +68,19 @@ export class ZoweNode extends vscode.TreeItem {
             return [];
         }
 
-        if (!this.dirty || this.mLabel === "Favorites") {
+        if (!this.dirty || this.label === "Favorites") {
             return this.children;
         }
 
-        if (!this.mLabel) {
+        if (!this.label) {
             vscode.window.showErrorMessage(localize("getChildren.error.invalidNode", "Invalid node"));
             throw Error(localize("getChildren.error.invalidNode", "Invalid node"));
         }
 
         // Check if node is a favorite
-        let label = this.mLabel.trim();
-        if (this.mLabel.startsWith("[")) {
-            label = this.mLabel.substring(this.mLabel.indexOf(":") + 1).trim();
+        let label = this.label.trim();
+        if (this.label.startsWith("[")) {
+            label = this.label.substring(this.label.indexOf(":") + 1).trim();
         }
 
         // Gets the datasets from the pattern or members of the dataset and displays any thrown errors
@@ -108,28 +111,32 @@ export class ZoweNode extends vscode.TreeItem {
 
             // Loops through all the returned dataset members and creates nodes for them
             for (const item of response.apiResponse.items) {
+                const existing = this.children.find((element) => element.label.trim() === item.dsname );
+                if (existing) {
+                    elementChildren[existing.label] = existing;
                 // Creates a ZoweNode for a PDS
-                if (item.dsorg === "PO" || item.dsorg === "PO-E") {
+                } else if (item.dsorg === "PO" || item.dsorg === "PO-E") {
                     const temp = new ZoweNode(item.dsname, vscode.TreeItemCollapsibleState.Collapsed, this, null);
+                    // temp.iconPath = utils.applyIcons(temp);
                     elementChildren[temp.label] = temp;
                 } else if (this.contextValue === "session") {
                     // Creates a ZoweNode for a PS
                     const temp = new ZoweNode(item.dsname, vscode.TreeItemCollapsibleState.None, this, null);
                     temp.command = {command: "zowe.ZoweNode.openPS", title: "", arguments: [temp]};
+                    // temp.iconPath = utils.applyIcons(temp);
                     elementChildren[temp.label] = temp;
                 } else {
                     // Creates a ZoweNode for a PDS member
                     const temp = new ZoweNode(item.member, vscode.TreeItemCollapsibleState.None, this, null);
                     temp.command = {command: "zowe.ZoweNode.openPS", title: "", arguments: [temp]};
+                    // temp.iconPath = utils.applyIcons(temp);
                     elementChildren[temp.label] = temp;
                 }
             }
         });
 
-        if (this.contextValue === "session") {
-            this.dirty = false;
-        }
-        if(Object.keys(elementChildren).length === 0) {
+        this.dirty = false;
+        if (Object.keys(elementChildren).length === 0) {
             return this.children = [new ZoweNode(localize("getChildren.noDataset", "No datasets found"),
             vscode.TreeItemCollapsibleState.None, this, null, true)];
         } else {

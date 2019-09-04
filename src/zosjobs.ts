@@ -15,6 +15,19 @@ import { Session, IProfileLoaded, Logger } from "@brightside/imperative";
 // tslint:disable-next-line: no-duplicate-imports
 import { IJob, IJobFile } from "@brightside/core";
 import { loadNamedProfile, loadDefaultProfile } from "./ProfileLoader";
+import * as utils from "./utils";
+
+
+/**
+ * Creates the Job tree that contains nodes of sessions, jibs and spool items
+ *
+ * @export
+ */
+export async function createJobsTree(log: Logger) {
+    const tree = new ZosJobsProvider();
+    await tree.addSession(log);
+    return tree;
+}
 
 export class ZosJobsProvider implements vscode.TreeDataProvider<Job> {
     public mSessionNodes: Job[] = [];
@@ -48,7 +61,7 @@ export class ZosJobsProvider implements vscode.TreeDataProvider<Job> {
 
         if (zosmfProfile) {
             // If session is already added, do nothing
-            if (this.mSessionNodes.find((tempNode) => tempNode.mLabel === zosmfProfile.name)) {
+            if (this.mSessionNodes.find((tempNode) => tempNode.label.trim() === zosmfProfile.name)) {
                 return;
             }
 
@@ -58,6 +71,7 @@ export class ZosJobsProvider implements vscode.TreeDataProvider<Job> {
             // Creates ZoweNode to track new session and pushes it to mSessionNodes
             const node = new Job(zosmfProfile.name, vscode.TreeItemCollapsibleState.Collapsed, null, session, null);
             node.contextValue = "server";
+            node.iconPath = utils.applyIcons(node);
             this.mSessionNodes.push(node);
             this.refresh();
         }
@@ -77,12 +91,34 @@ export class ZosJobsProvider implements vscode.TreeDataProvider<Job> {
         treeView.reveal(job, { select: true, focus: true });
     }
 
+
+    /**
+     * Called whenever the tree needs to be refreshed, and fires the data change event
+     *
+     */
+    public refreshElement(element: Job): void {
+        element.dirty = true;
+        this.mOnDidChangeTreeData.fire(element);
+    }
+
     /**
      * Called whenever the tree needs to be refreshed, and fires the data change event
      *
      */
     public refresh(): void {
         this.mOnDidChangeTreeData.fire();
+    }
+
+    /**
+     * Change the state of an expandable node
+     * @param provider the tree view provider
+     * @param element the node being flipped
+     * @param isOpen the intended state of the the tree view provider, true or false
+     */
+    public async flipState(element: Job, isOpen: boolean = false) {
+        element.iconPath = utils.applyIcons(element, isOpen ? "open" : "closed");
+        element.dirty = true;
+        this.mOnDidChangeTreeData.fire(element);
     }
 }
 
@@ -95,28 +131,44 @@ export class Job extends vscode.TreeItem {
     // tslint:disable-next-line: variable-name
     private _prefix: string;
 
-    constructor(public mLabel: string, public mCollapsibleState: vscode.TreeItemCollapsibleState,
+    constructor(public label: string, public mCollapsibleState: vscode.TreeItemCollapsibleState,
                 public mParent: Job, public session: Session, public job: IJob) {
-        super(mLabel, mCollapsibleState);
+        super(label, mCollapsibleState);
         this._owner = session.ISession.user;
         this._prefix = "*";
+        utils.applyIcons(this);
+    }
+
+    public getSessionName(): string {
+        if(this.mParent == null) {
+            return this.label.trim();
+        } else {
+            return this.mParent.getSessionName();
+        }
     }
 
     public async getChildren(): Promise<Job[]> {
         if (this.dirty) {
-            this.children = [];
+            const elementChildren = [];
             if (this.contextValue === "job") {
                 const spools: zowe.IJobFile[] = await zowe.GetJobs.getSpoolFiles(this.session, this.job.jobname, this.job.jobid);
                 spools.forEach((spool) => {
-                    let prefix = spool.stepname;
-                    if (prefix === undefined) {
-                        prefix = spool.procstep;
+                    const existing = this.children.find((element) => element.label.trim() === `${spool.stepname}:${spool.ddname}(${spool.id})` );
+                    if (existing) {
+                        elementChildren.push(existing);
+                    } else {
+                        let prefix = spool.stepname;
+                        if (prefix === undefined) {
+                            prefix = spool.procstep;
+                        }
+                        const spoolNode = new Spool(`${spool.stepname}:${spool.ddname}(${spool.id})`,
+                            vscode.TreeItemCollapsibleState.None, this, this.session, spool, this.job, this);
+                        spoolNode.iconPath = utils.applyIcons(spoolNode);
+                        spoolNode.command = { command: "zowe.zosJobsOpenspool", title: "", arguments: [this.getSessionName(), spool] };
+                        elementChildren.push(spoolNode);
                     }
-                    const spoolNode = new Spool(`${spool.stepname}:${spool.ddname}(${spool.id})`,
-                        vscode.TreeItemCollapsibleState.None, this, this.session, spool, this.job, this);
-                    spoolNode.command = { command: "zowe.zosJobsOpenspool", title: "", arguments: [this.session, spool] };
-                    this.children.push(spoolNode);
                 });
+                this.iconPath = utils.applyIcons(this, "open");
             } else {
                 const jobs: zowe.IJob[] = await zowe.GetJobs.getJobsByOwnerAndPrefix(this.session, this._owner, this._prefix);
                 jobs.forEach((job) => {
@@ -126,18 +178,28 @@ export class Job extends vscode.TreeItem {
                     } else {
                         nodeTitle = `${job.jobname}(${job.jobid}) - ${job.status}`;
                     }
-                    const jobNode = new Job(nodeTitle, vscode.TreeItemCollapsibleState.Collapsed, this, this.session, job);
-                    jobNode.command = { command: "zowe.zosJobsSelectjob", title: "", arguments: [jobNode] };
-                    jobNode.contextValue = "job";
-                    this.children.push(jobNode);
-                    this.children.sort((a, b) => {
-                        if (a.job.jobid > b.job.jobid) { return 1; }
-                        if (a.job.jobid < b.job.jobid) { return -1; }
-                        return 0;
-                    });
+                    const existing = this.children.find((element) => element.label.trim() === nodeTitle );
+                    if (existing) {
+                        elementChildren.push(existing);
+                    } else {
+                        const jobNode = new Job(nodeTitle, vscode.TreeItemCollapsibleState.Collapsed, this, this.session, job);
+                        jobNode.command = { command: "zowe.zosJobsSelectjob", title: "", arguments: [jobNode] };
+                        jobNode.contextValue = "job";
+                        if (!jobNode.iconPath) {
+                            jobNode.iconPath = utils.applyIcons(jobNode);
+                        }
+                        elementChildren.push(jobNode);
+                    }
                 });
             }
+            elementChildren.sort((a, b) => {
+                if (a.job.jobid > b.job.jobid) { return 1; }
+                if (a.job.jobid < b.job.jobid) { return -1; }
+                return 0;
+            });
+            this.children = elementChildren;
         }
+        this.dirty = false;
         return this.children;
     }
 
@@ -149,7 +211,7 @@ export class Job extends vscode.TreeItem {
                 return `${this.job.jobname}(${this.job.jobid})`;
             }
         } else {
-            return `${this.mLabel} - owner: ${this._owner} prefix: ${this._prefix}`;
+            return `${this.label} - owner: ${this._owner} prefix: ${this._prefix}`;
         }
     }
 
@@ -180,11 +242,19 @@ export class Job extends vscode.TreeItem {
     get prefix() {
         return this._prefix;
     }
+
+    public reset() {
+        utils.labelHack(this);
+        this.children = [];
+        this.dirty = true;
+    }
 }
 // tslint:disable-next-line: max-classes-per-file
 class Spool extends Job {
-    constructor(public mLabel: string, public mCollapsibleState: vscode.TreeItemCollapsibleState, public mParent: Job,
+    constructor(public label: string, public mCollapsibleState: vscode.TreeItemCollapsibleState, public mParent: Job,
                 public session: Session, public spool: IJobFile, public job: IJob, public parent: Job) {
-        super(mLabel, mCollapsibleState, mParent, session, job);
+        super(label, mCollapsibleState, mParent, session, job);
+        this.contextValue = "spool";
+        utils.applyIcons(this);
     }
 }

@@ -19,6 +19,7 @@ import * as nls from "vscode-nls";
 const localize = nls.config({ messageFormat: nls.MessageFormat.file })();
 
 import * as path from "path";
+import { loadNamedProfile } from "../ProfileLoader";
 /**
  * Prompts the user for a path, and populates the [TreeView]{@link vscode.TreeView} based on the path
  *
@@ -36,13 +37,14 @@ export async function createUSSNode(node: ZoweUSSNode, ussFileProvider: USSTree,
             if (isTopLevel) {
                 refreshAllUSS(ussFileProvider);
             } else {
-                ussFileProvider.refresh();
+                ussFileProvider.refreshElement(node);
             }
         } catch (err) {
             vscode.window.showErrorMessage(
                 localize("createUSSNode.error.create", "Unable to create node: ") + err.message);
             throw (err);
         }
+        ussFileProvider.refresh();
     }
 }
 
@@ -74,7 +76,7 @@ export async function deleteUSSNode(node: ZoweUSSNode, ussFileProvider: USSTree,
     try {
         const isRecursive = node.contextValue === "directory" ? true : false;
         await zowe.Delete.ussFile(node.getSession(), nodePath, isRecursive);
-        ussFileProvider.refresh();
+        node.mParent.dirty = true;
         deleteFromDisk(node, filePath);
     } catch (err) {
         vscode.window.showErrorMessage(localize("deleteUSSNode.error.node", "Unable to delete node: ") + err.message);
@@ -92,8 +94,12 @@ export async function deleteUSSNode(node: ZoweUSSNode, ussFileProvider: USSTree,
  * @param {USSTree} ussFileProvider
  */
 export async function refreshAllUSS(ussFileProvider: USSTree) {
-    ussFileProvider.mSessionNodes.forEach((node) => {
-        node.dirty = true;
+    ussFileProvider.mSessionNodes.forEach( (sessNode) => {
+        if (sessNode.contextValue === "uss_session") {
+            utils.labelHack(sessNode);
+            sessNode.children = [];
+            sessNode.dirty = true;
+        }
     });
     ussFileProvider.refresh();
 }
@@ -130,41 +136,6 @@ export async function deleteFromDisk(node: ZoweUSSNode, filePath: string) {
         }
 // tslint:disable-next-line: no-empty
         catch (err) {}
-}
-
-export async function initializeUSSFavorites(ussFileProvider: USSTree) {
-    const lines: string[] = vscode.workspace.getConfiguration("Zowe-USS-Persistent-Favorites").get("favorites");
-    lines.forEach(async (line) => {
-        const profileName = line.substring(1, line.lastIndexOf("]"));
-        const nodeName = (line.substring(line.indexOf(":") + 1, line.indexOf("{"))).trim();
-        const session = await utils.getSession(profileName);
-        let node: ZoweUSSNode;
-        if (line.substring(line.indexOf("{") + 1, line.lastIndexOf("}")) === "directory") {
-        node = new ZoweUSSNode(
-            nodeName,
-            vscode.TreeItemCollapsibleState.Collapsed,
-            ussFileProvider.mFavoriteSession,
-            session,
-            "",
-            false,
-            profileName
-        );
-        } else {
-            node = new ZoweUSSNode(
-                nodeName,
-                vscode.TreeItemCollapsibleState.None,
-                ussFileProvider.mFavoriteSession,
-                session,
-                "",
-                false,
-                profileName
-            );
-            node.command = {command: "zowe.uss.ZoweUSSNode.open",
-                            title: localize("initializeUSSFavorites.lines.title", "Open"), arguments: [node]};
-        }
-        node.contextValue += "f";
-        ussFileProvider.mFavorites.push(node);
-    });
 }
 
 export async function uploadDialog(node: ZoweUSSNode, ussFileProvider: USSTree) {

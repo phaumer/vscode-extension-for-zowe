@@ -5,6 +5,5 @@
     "deleteUSSNode.showQuickPick.yes": "Yes",
     "deleteUSSNode.showQuickPick.no": "No",
     "deleteUSSNode.error.node": "Unable to delete node: ",
-    "renameUSSNode.error": "Unable to rename node: ",
-    "initializeUSSFavorites.lines.title": "Open"
+    "renameUSSNode.error": "Unable to rename node: "
 }

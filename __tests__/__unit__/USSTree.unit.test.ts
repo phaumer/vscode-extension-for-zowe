@@ -17,10 +17,12 @@ jest.mock("Session");
 jest.mock("../../src/ProfileLoader");
 import { Session, Logger } from "@brightside/imperative";
 import * as vscode from "vscode";
-import { USSTree } from "../../src/USSTree";
+import { USSTree, createUSSTree } from "../../src/USSTree";
+import * as utils from "../../src/utils";
 import { ZoweUSSNode } from "../../src/ZoweUSSNode";
 
 import * as profileLoader from "../../src/ProfileLoader";
+
 
 describe("Unit Tests (Jest)", () => {
     // Globals
@@ -48,22 +50,38 @@ describe("Unit Tests (Jest)", () => {
         })
     });
     const getConfiguration = jest.fn();
-    Object.defineProperty(vscode.workspace, "getConfiguration", {
-        value:
-            jest.fn(()=>{
-                return {
-                    get: jest.fn(()=>{
-                        return {};
-                    })
-                };
-            })
+    Object.defineProperty(vscode.workspace, "getConfiguration", { value: getConfiguration });
+    getConfiguration.mockReturnValue({
+        get: (setting: string) => [
+            "[test]: /u/aDir{directory}",
+            "[test]: /u/myFile.txt{textFile}",
+        ],
+        update: jest.fn(()=>{
+            return {};
+        })
     });
-
+    // Filter prompt
+    const showInformationMessage = jest.fn();
+    const showInputBox = jest.fn();
+    const showQuickPick = jest.fn();
+    const filters = jest.fn();
+    const getFilters = jest.fn();
+    Object.defineProperty(vscode.window, "showInformationMessage", {value: showInformationMessage});
+    Object.defineProperty(vscode.window, "showQuickPick", {value: showQuickPick});
+    Object.defineProperty(vscode.window, "showInputBox", {value: showInputBox});
+    Object.defineProperty(filters, "getFilters", { value: getFilters });
+    getFilters.mockReturnValue(["/u/aDir{directory}", "/u/myFile.txt{textFile}"]);
 
     const testTree = new USSTree();
-    testTree.mSessionNodes.push(new ZoweUSSNode("testSess", vscode.TreeItemCollapsibleState.Collapsed, null, session, null));
+    testTree.mSessionNodes.push(new ZoweUSSNode("ussTestSess", vscode.TreeItemCollapsibleState.Collapsed, null, session, null));
     testTree.mSessionNodes[1].contextValue = "uss_session";
     testTree.mSessionNodes[1].fullPath = "test";
+    testTree.mSessionNodes[1].iconPath = utils.applyIcons(testTree.mSessionNodes[1]);
+
+    afterEach(async () => {
+        getConfiguration.mockClear();
+    });
+
     /*************************************************************************************************************
      * Creates an ZoweUSSNode and checks that its members are all initialized by the constructor
      *************************************************************************************************************/
@@ -73,7 +91,7 @@ describe("Unit Tests (Jest)", () => {
 
         expect(testNode.label).toBeDefined();
         expect(testNode.collapsibleState).toBeDefined();
-        expect(testNode.mLabel).toBeDefined();
+        expect(testNode.label).toBeDefined();
         expect(testNode.mParent).toBeDefined();
         expect(testNode.getSession()).toBeDefined();
     });
@@ -103,10 +121,12 @@ describe("Unit Tests (Jest)", () => {
         // Creating a rootNode
         const sessNode = [
             new ZoweUSSNode("Favorites", vscode.TreeItemCollapsibleState.Collapsed, null, null, null),
-            new ZoweUSSNode("testSess", vscode.TreeItemCollapsibleState.Collapsed, null, session, null),
+            new ZoweUSSNode("ussTestSess", vscode.TreeItemCollapsibleState.Collapsed, null, session, null),
         ];
         sessNode[0].contextValue = "favorite";
+        sessNode[0].iconPath = utils.applyIcons(sessNode[0]);
         sessNode[1].contextValue = "uss_session";
+        sessNode[1].iconPath = utils.applyIcons(sessNode[0]);
         sessNode[1].fullPath = "test";
 
         // Checking that the rootChildren are what they are expected to be
@@ -152,7 +172,7 @@ describe("Unit Tests (Jest)", () => {
      * Tests that getChildren() method returns an array of all child nodes of passed ZoweUSSNode
      *************************************************************************************************************/
     it("Testing that getChildren returns the correct ZoweUSSNodes when called and passed an element of type ZoweUSSNode<session>", async () => {
-
+        testTree.mSessionNodes[1].dirty = true;
         // Waiting until we populate rootChildren with what getChildren return
         const sessChildren = await testTree.getChildren(testTree.mSessionNodes[1]);
         // Creating fake datasets and uss members to test
@@ -161,7 +181,7 @@ describe("Unit Tests (Jest)", () => {
         ];
 
         // Checking that the rootChildren are what they are expected to be
-        expect(sessChildren[0].mLabel).toEqual(sampleChildren[0].mLabel);
+        expect(sessChildren[0].label).toEqual(sampleChildren[0].label);
     });
 
     /*************************************************************************************************************
@@ -186,7 +206,7 @@ describe("Unit Tests (Jest)", () => {
      *************************************************************************************************************/
     it("Testing that getChildren returns the correct ZoweUSSNodes when called and passed an element of type ZoweUSSNode<directory>", async () => {
         const directory = new ZoweUSSNode("/u", vscode.TreeItemCollapsibleState.Collapsed, testTree.mSessionNodes[1], null, null);
-
+        directory.dirty = true;
         // Waiting until we populate rootChildren with what getChildren return
         const dirChildren = await testTree.getChildren(directory);
         // Creating fake directory and files to test
@@ -196,7 +216,7 @@ describe("Unit Tests (Jest)", () => {
         sampleChildren[0].command = { command: "zowe.uss.ZoweUSSNode.open", title: "", arguments: [sampleChildren[0]] };
 
         // Checking that the rootChildren are what they are expected to be
-        expect(dirChildren[1].mLabel).toEqual(sampleChildren[0].mLabel);
+        expect(dirChildren[1].label).toEqual(sampleChildren[0].label);
         // expect(dirChildren[1].command).toEqual("zowe.uss.ZoweUSSNode.open");
     });
 
@@ -225,8 +245,9 @@ describe("Unit Tests (Jest)", () => {
         testTree.mFavorites = [];
         const parentDir = new ZoweUSSNode("parent", vscode.TreeItemCollapsibleState.Collapsed,
             testTree.mSessionNodes[1], null, "/");
-        const childFile = new ZoweUSSNode("child", vscode.TreeItemCollapsibleState.Collapsed,
+        const childFile = new ZoweUSSNode("child", vscode.TreeItemCollapsibleState.None,
             parentDir, null, "/parent");
+        childFile.contextValue = "textFile";
 
         // Check adding directory
         await testTree.addUSSFavorite(parentDir);
@@ -253,5 +274,114 @@ describe("Unit Tests (Jest)", () => {
         testTree.removeUSSFavorite(testTree.mFavorites[0]);
 
         expect(testTree.mFavorites).toEqual([]);
+    });
+
+    /*************************************************************************************************************
+     * Testing that expand tree is executed successfully
+     *************************************************************************************************************/
+    it("Testing that expand tree is executed successfully", async () => {
+        const refresh = jest.fn();
+        Object.defineProperty(testTree, "refresh", {value: refresh});
+        refresh.mockReset();
+        const folder = new ZoweUSSNode("/u/myuser", vscode.TreeItemCollapsibleState.Collapsed, testTree.mSessionNodes[0], session, null);
+        folder.contextValue = "directory";
+        await testTree.flipState(folder, true);
+        expect(JSON.stringify(folder.iconPath)).toContain("folder-open.svg");
+        await testTree.flipState(folder, false);
+        expect(JSON.stringify(folder.iconPath)).toContain("folder.svg");
+        await testTree.flipState(folder, true);
+        expect(JSON.stringify(folder.iconPath)).toContain("folder-open.svg");
+    });
+
+    it("initialize USSTree is executed successfully", async () => {
+        // const testUSSTree = new USSTree();
+        // createBasicZosmfSession.mockReturnValue(session);
+        spyOn(utils, "getSession").and.returnValue(session);
+        const testTree1 = await createUSSTree(Logger.getAppLogger());
+        expect(testTree1.mFavorites.length).toBe(2);
+
+        const expectedUSSFavorites: ZoweUSSNode[] = [
+            new ZoweUSSNode("/u/aDir", vscode.TreeItemCollapsibleState.Collapsed, undefined, session, "",
+                false, "test"),
+            new ZoweUSSNode("/u/myFile.txt", vscode.TreeItemCollapsibleState.None, undefined, session, "",
+                false, "test"),
+        ];
+
+        expectedUSSFavorites.map((node) => node.contextValue += "f");
+        expectedUSSFavorites.forEach((node) => {
+            if (node.contextValue !== "directoryf") {
+                node.command = { command: "zowe.uss.ZoweUSSNode.open", title: "Open", arguments: [node] };
+            }
+        });
+        expect(testTree1.mFavorites[0].fullPath).toEqual("/u/aDir");
+        expect(testTree1.mFavorites[1].label).toEqual("[test]: myFile.txt");
+    });
+
+    /*************************************************************************************************************
+     * USS Filter prompts
+     *************************************************************************************************************/
+    it("Testing that user filter prompts are executed successfully", async () => {
+        showInformationMessage.mockReset();
+        showQuickPick.mockReset();
+        showQuickPick.mockReturnValueOnce(" -- Specify Filter -- ");
+        showInputBox.mockReset();
+        showInputBox.mockReturnValueOnce("/u/myFiles");
+
+        // Assert choosing the new filter specification followed by a path
+        await testTree.ussFilterPrompt(testTree.mSessionNodes[1]);
+        expect(testTree.mSessionNodes[1].fullPath).toEqual("/u/myFiles");
+
+        // Assert edge condition user cancels the input path box
+        showInformationMessage.mockReset();
+        showQuickPick.mockReturnValueOnce(" -- Specify Filter -- ");
+        showInputBox.mockReturnValueOnce(undefined);
+        await testTree.ussFilterPrompt(testTree.mSessionNodes[1]);
+        expect(showInformationMessage.mock.calls.length).toBe(1);
+        expect(showInformationMessage.mock.calls[0][0]).toBe("You must enter a path.");
+
+        showQuickPick.mockReset();
+        showQuickPick.mockReturnValueOnce("/u/thisFile");
+        await testTree.ussFilterPrompt(testTree.mSessionNodes[1]);
+        expect(testTree.mSessionNodes[1].fullPath).toEqual("/u/thisFile");
+
+        showInformationMessage.mockReset();
+        showQuickPick.mockReset();
+        showQuickPick.mockReturnValueOnce(undefined);
+        await testTree.ussFilterPrompt(testTree.mSessionNodes[1]);
+        expect(showInformationMessage.mock.calls.length).toBe(1);
+        expect(showInformationMessage.mock.calls[0][0]).toBe("No selection made.");
+    });
+    /*************************************************************************************************************
+     * Testing the onDidConfiguration
+     *************************************************************************************************************/
+    it("Testing the onDidConfiguration", async () => {
+        getConfiguration.mockReturnValue({
+            get: (setting: string) => [
+                "[test]: /u/aDir{directory}",
+                "[test]: /u/myFile.txt{textFile}",
+            ],
+            update: jest.fn(()=>{
+                return {};
+            })
+        });
+        const mockAffects = jest.fn();
+        const Event = jest.fn().mockImplementation(() => {
+            return {
+                affectsConfiguration: mockAffects
+            };
+        });
+        const e = new Event();
+        mockAffects.mockReturnValue(true);
+
+        const enums = jest.fn().mockImplementation(() => {
+            return {
+                Global: 1,
+                Workspace: 2,
+                WorkspaceFolder: 3
+            };
+        });
+        Object.defineProperty(vscode, "ConfigurationTarget", {value: enums});
+        await testTree.onDidChangeConfiguration(e);
+        expect(getConfiguration.mock.calls.length).toBe(2);
     });
 });
